@@ -5,6 +5,7 @@
 
 DiningTable::DiningTable(uint32_t philosophersCount)
     : _diningTableStateGraphicsPtr(nullptr)
+    , _diningScheduler()
 {
     createForks(philosophersCount);
     createPhilosophers(philosophersCount);
@@ -16,15 +17,15 @@ DiningTable::~DiningTable()
 
 void DiningTable::initTableRows(std::vector<std::vector<std::string>>& rows)
 {
-    auto forkIt = _forksMap.begin();
-    auto philosopherIt = _philosophersMap.begin();
-    for(; philosopherIt != _philosophersMap.end(); ++philosopherIt, ++forkIt)
+    auto forkIt = _forks.begin();
+    auto philosopherIt = _philosophers.begin();
+    for(; philosopherIt != _philosophers.end(); ++philosopherIt, ++forkIt)
     {
-        rows.push_back({ philosopherIt->second.getName(),
-                         philosopherIt->second.convertStateToString(philosopherIt->second.getState()),
-                         forkIt->second.getName(),
-                         forkIt->second.getOwnerName(),
-                         forkIt->second.convertStateToString(forkIt->second.getState()) });
+        rows.push_back({ philosopherIt->getName(),
+                         philosopherIt->convertStateToString(philosopherIt->getState()),
+                         forkIt->getName(),
+                         forkIt->getOwnerName(),
+                         forkIt->convertStateToString(forkIt->getState()) });
     }
 }
 
@@ -35,7 +36,7 @@ void DiningTable::initTable()
 
     initTableRows(rows);
 
-    _diningTableStateGraphicsPtr = std::make_unique<Graphics>(columns, rows);
+    _diningTableStateGraphicsPtr = std::make_unique<Graphics>(columns, rows, _diningScheduler);
 }
 
 void DiningTable::createForks(uint32_t philosophersCount)
@@ -54,7 +55,7 @@ void DiningTable::createForks(uint32_t philosophersCount)
             ownerName = "Phil" + std::to_string(forkId);
         }
 
-        _forksMap.emplace(std::make_pair(forkName, Fork(forkName, ownerName)));
+        _forks.emplace_back(forkId, forkName, ownerName, _diningScheduler);
     }
 }
 
@@ -63,24 +64,22 @@ void DiningTable::createPhilosophers(uint32_t philosophersCount)
     for(uint32_t philosopherId = 0; philosopherId < philosophersCount; ++philosopherId)
     {
         std::string philosopherName = "Phil" + std::to_string(philosopherId);
-        std::string leftForkName = "Fork" + std::to_string(philosopherId);
-        std::string rightForkName;
 
         if(philosopherId == philosophersCount - 1)
         {
-            rightForkName = "Fork" + std::to_string(0);
+            _philosophers.emplace_back(philosopherId, philosopherName, _forks[philosopherId], _forks[0], _diningScheduler, _diningTableStateGraphicsPtr);
         }
         else
         {
-            rightForkName = "Fork" + std::to_string(philosopherId + 1);
+            _philosophers.emplace_back(philosopherId, philosopherName, _forks[philosopherId], _forks[philosopherId + 1], _diningScheduler, _diningTableStateGraphicsPtr);
         }
 
-        _philosophersMap.emplace(std::make_pair(philosopherName, Philosopher(philosopherName, _forksMap.at(leftForkName)
-                                                                                            , _forksMap.at(rightForkName))));
     }
 }
 
 void DiningTable::startDinner()
 {
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    _diningScheduler.notifyAllThreads();
     _diningTableStateGraphicsPtr->display();
 }

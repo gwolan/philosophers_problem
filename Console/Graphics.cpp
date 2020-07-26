@@ -1,7 +1,8 @@
 #include <Console/Graphics.hpp>
 
 
-Graphics::Graphics(const std::vector<std::string>& columnsNames, const std::vector<std::vector<std::string>>& rowsValues)
+Graphics::Graphics(const std::vector<std::string>& columnsNames,
+                   const std::vector<std::vector<std::string>>& rowsValues, DiningScheduler& diningScheduler)
     : _window(nullptr)
     , _menu(nullptr)
     , _menuItems(nullptr)
@@ -15,6 +16,7 @@ Graphics::Graphics(const std::vector<std::string>& columnsNames, const std::vect
     , _columnWidth()
     , _rowsCount()
     , _baseMenuItemId(2)
+    , _diningScheduler(diningScheduler)
 {
     // set COLS and LINES variables
     initscr();
@@ -204,6 +206,8 @@ void Graphics::display()
 
     while(!quit && (option = getch()))
     {
+        std::lock_guard<std::mutex> lock(mutex);
+
         switch(option)
         {
             case KEY_DOWN:
@@ -223,6 +227,7 @@ void Graphics::display()
                 menu_driver(_menu, REQ_SCR_UPAGE);
                 break;
             case 'q':
+                _diningScheduler.stopDinner();
                 quit = true;
                 break;
             default:
@@ -235,8 +240,13 @@ void Graphics::display()
 
 void Graphics::updateRow(uint32_t rowIndex, const std::vector<std::string>& rowValues)
 {
+    std::lock_guard<std::mutex> lock(mutex);
+
     // create new row from given values
     std::string newRow = createRow(rowValues);
+
+    // align index to menu items indexing
+    rowIndex += _baseMenuItemId;
 
     // overwrite row at given index
     _rows[rowIndex] = newRow;

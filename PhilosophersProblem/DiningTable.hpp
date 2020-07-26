@@ -1,12 +1,13 @@
 #pragma once
 
 #include <string>
-#include <map>
 #include <cstdint>
 #include <memory>
+#include <vector>
+#include <Console/Graphics.hpp>
 #include <PhilosophersProblem/Fork.hpp>
 #include <PhilosophersProblem/Philosopher.hpp>
-#include <Console/Graphics.hpp>
+#include <PhilosophersProblem/DiningScheduler.hpp>
 
 
 class DiningTable
@@ -24,7 +25,8 @@ class DiningTable
     void createForks(uint32_t philosophersCount);
     void createPhilosophers(uint32_t philosophersCount);
 
-    std::map<std::string, Fork> _forksMap;
-    std::map<std::string, Philosopher> _philosophersMap;
+    std::vector<Fork> _forks;
+    std::vector<Philosopher> _philosophers;
     std::unique_ptr<Graphics> _diningTableStateGraphicsPtr;
+    DiningScheduler _diningScheduler;
 };

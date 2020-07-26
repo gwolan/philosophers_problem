@@ -5,14 +5,18 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
+#include <mutex>
+#include <PhilosophersProblem/DiningScheduler.hpp>
 
 class Graphics
 {
     public:
-    Graphics(const std::vector<std::string>& columnsNames, const std::vector<std::vector<std::string>>& rowsValues);
+    Graphics(const std::vector<std::string>& columnsNames,
+             const std::vector<std::vector<std::string>>& rowsValues, DiningScheduler& diningScheduler);
     ~Graphics();
 
     void display();
+    void updateRow(uint32_t rowIndex, const std::vector<std::string>& rowValues);
 
 
     private:
@@ -23,13 +27,13 @@ class Graphics
     uint32_t calculateColumnWidth();
     void initMenuItems();
     void init();
-    void updateRow(uint32_t rowIndex, const std::vector<std::string>& rowValues);
     void refreshMenu();
 
     WINDOW* _window;
     MENU* _menu;
     ITEM** _menuItems;
 
+    std::mutex mutex;
     std::vector<std::string> _columnsNames;
     std::vector<std::string> _rows;
     const std::string _nullRow;
@@ -40,4 +44,5 @@ class Graphics
     uint32_t _columnWidth;
     uint32_t _rowsCount;
     const uint32_t _baseMenuItemId;
+    DiningScheduler& _diningScheduler;
 };

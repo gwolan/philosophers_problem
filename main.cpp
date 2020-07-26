@@ -18,7 +18,7 @@ int main(int argc, char* argv[])
     else
     {
         std::cout << "Invalid arguments!" << std::endl;
-        std::cout << "Program accepts unsigned integer as number of required philosphers." << std::endl;
+        std::cout << "Program accepts unsigned integer as number of required philosophers." << std::endl;
     }
 
     return 0;
