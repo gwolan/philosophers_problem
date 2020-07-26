@@ -2,7 +2,7 @@
 #include <vector>
 #include <iostream>
 #include <Console/IO.hpp>
-#include <Console/Graphics.hpp>
+#include <PhilosophersProblem/DiningTable.hpp>
 
 
 int main(int argc, char* argv[])
@@ -12,11 +12,8 @@ int main(int argc, char* argv[])
     // input argument define number of rows
     if(io.validateArgs((uint32_t)argc, argv))
     {
-        std::vector<std::string> columnsNames{ "Column1", "Column2", "Column3", "Column4", "Column5" };
-        std::vector<std::vector<std::string>> rows(io.getInputArgValue(), { "rowX", "rowX", "rowX", "rowX", "rowX" });
-
-        Graphics graphics(columnsNames, rows);
-        graphics.display();
+        DiningTable diningTable(io.getInputArgValue());
+        diningTable.startDinner();
     }
     else
     {
