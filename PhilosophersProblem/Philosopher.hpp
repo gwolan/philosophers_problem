@@ -30,6 +30,7 @@ class Philosopher
     uint32_t getId() const;
     std::string getName() const;
     PhilosopherState getState() const;
+    void performStateTransitionTo(PhilosopherState philosopherState);
     std::string convertStateToString(PhilosopherState philosopherState);
 
 

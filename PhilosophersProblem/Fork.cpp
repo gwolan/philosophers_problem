@@ -10,6 +10,14 @@ Fork::Fork(uint32_t id, const std::string& forkName,
     , _diningScheduler(diningScheduler)
 { }
 
+Fork::Fork(const Fork& other)
+    : _id(other._id)
+    , _forkName(other._forkName)
+    , _ownerName(other._ownerName)
+    , _forkCurrentState(other._forkCurrentState)
+    , _diningScheduler(other._diningScheduler)
+{ }
+
 Fork::~Fork()
 { }
 
@@ -47,4 +55,28 @@ std::string Fork::convertStateToString(ForkState forkState)
 bool Fork::isFree()
 {
     return _forkCurrentState == FREE;
+}
+
+void Fork::free()
+{
+    _forkCurrentState = FREE;
+    _diningScheduler.notifyAllThreads();
+}
+
+void Fork::aquire(const std::string& requestorName)
+{
+    while(_ownerName != requestorName)
+    {
+        if(getState() == FREE)
+        {
+            std::lock_guard<std::mutex> lock(mutex);
+
+            _forkCurrentState = IN_USE;
+            _ownerName = requestorName;
+        }
+        else
+        {
+            _diningScheduler.wait();
+        }
+    }
 }

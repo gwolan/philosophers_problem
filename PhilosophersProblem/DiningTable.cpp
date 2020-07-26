@@ -79,7 +79,7 @@ void DiningTable::createPhilosophers(uint32_t philosophersCount)
 
 void DiningTable::startDinner()
 {
-    std::this_thread::sleep_for(std::chrono::seconds(3));
+    std::this_thread::sleep_for(std::chrono::seconds(2));
     _diningScheduler.notifyAllThreads();
     _diningTableStateGraphicsPtr->display();
 }

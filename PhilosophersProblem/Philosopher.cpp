@@ -63,15 +63,25 @@ std::string Philosopher::convertStateToString(PhilosopherState philosopherState)
     return "UNKNOWN";
 }
 
-void Philosopher::startDinner()
+void Philosopher::performStateTransitionTo(Philosopher::PhilosopherState philosopherState)
 {
-    _diningScheduler.wait();
-    _philosopherCurrentState = EATING;
+    _philosopherCurrentState = philosopherState;
 
     std::vector<std::string> newRow { getName(),
                                       convertStateToString(getState()),
                                       _leftFork.getName(),
                                       _leftFork.getOwnerName(),
                                       _leftFork.convertStateToString(_leftFork.getState()) };
+
     _graphics->updateRow(_id, newRow);
+}
+
+void Philosopher::startDinner()
+{
+    _diningScheduler.wait();
+
+    while(!_diningScheduler.isDinnerOver())
+    {
+        
+    }
 }
