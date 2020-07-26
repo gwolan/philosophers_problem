@@ -8,6 +8,7 @@ class Logger
 {
     public:
     Logger(const std::string& prologue);
+    //Logger(const Logger& other);
     ~Logger();
 
     void log(const std::string& log, const std::string functionName);

@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <thread>
 #include <memory>
+#include <Miscellanous/Dice.hpp>
+#include <Miscellanous/Logger.hpp>
 #include <Console/Graphics.hpp>
 #include <PhilosophersProblem/Fork.hpp>
 #include <PhilosophersProblem/DiningScheduler.hpp>
@@ -30,12 +32,16 @@ class Philosopher
     uint32_t getId() const;
     std::string getName() const;
     PhilosopherState getState() const;
-    void performStateTransitionTo(PhilosopherState philosopherState);
     std::string convertStateToString(PhilosopherState philosopherState);
+    void startThinking();
+    void startEating();
 
 
     private:
     void startDinner();
+    void performStateTransitionTo(PhilosopherState philosopherState);
+    bool stoppedDining();
+    void aquireForks();
 
     uint32_t _id;
     const std::string _philosopherName;
@@ -44,5 +50,9 @@ class Philosopher
     Fork& _rightFork;
     DiningScheduler& _diningScheduler;
     std::unique_ptr<Graphics>& _graphics;
+    Dice _activityTimeDice;
+    Dice _forkLeftOrRightDice;
     std::thread _philosopherThread;
+
+    Logger log;
 };

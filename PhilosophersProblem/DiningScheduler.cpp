@@ -14,7 +14,7 @@ void DiningScheduler::wait()
 void DiningScheduler::notifyAllThreads()
 {
     std::unique_lock<std::mutex> lock(_mutex);
-    _scheduler.notify_all();
+    _scheduler.notify_one();
 }
 
 bool DiningScheduler::isDinnerOver()

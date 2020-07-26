@@ -73,13 +73,11 @@ void DiningTable::createPhilosophers(uint32_t philosophersCount)
         {
             _philosophers.emplace_back(philosopherId, philosopherName, _forks[philosopherId], _forks[philosopherId + 1], _diningScheduler, _diningTableStateGraphicsPtr);
         }
-
     }
 }
 
 void DiningTable::startDinner()
 {
-    std::this_thread::sleep_for(std::chrono::seconds(2));
     _diningScheduler.notifyAllThreads();
     _diningTableStateGraphicsPtr->display();
 }

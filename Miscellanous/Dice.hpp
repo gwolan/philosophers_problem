@@ -8,6 +8,7 @@ class Dice
 {
     public:
     Dice(uint32_t lowerBound, uint32_t upperBound);
+    Dice(const Dice& other);
 
     uint32_t rollUnsignedInt();
     int32_t rollSignedInt();

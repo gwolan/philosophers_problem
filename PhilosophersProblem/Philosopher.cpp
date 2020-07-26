@@ -12,7 +12,10 @@ Philosopher::Philosopher(uint32_t id, const std::string& philosopherName, Fork& 
     , _rightFork(rightFork)
     , _diningScheduler(diningScheduler)
     , _graphics(graphics)
+    , _activityTimeDice(1500, 3000)
+    , _forkLeftOrRightDice(1, 2)
     , _philosopherThread(&Philosopher::startDinner, this)
+    , log("Philosopher::")
 { }
 
 Philosopher::Philosopher(Philosopher&& other)
@@ -23,7 +26,10 @@ Philosopher::Philosopher(Philosopher&& other)
     , _rightFork(other._rightFork)
     , _diningScheduler(other._diningScheduler)
     , _graphics(other._graphics)
+    , _activityTimeDice(other._activityTimeDice)
+    , _forkLeftOrRightDice(other._forkLeftOrRightDice)
     , _philosopherThread(std::move(other._philosopherThread))
+    , log("Philosopher::")
 { }
 
 Philosopher::~Philosopher()
@@ -65,6 +71,7 @@ std::string Philosopher::convertStateToString(PhilosopherState philosopherState)
 
 void Philosopher::performStateTransitionTo(Philosopher::PhilosopherState philosopherState)
 {
+    log.log(_philosopherName, __FUNCTION__);
     _philosopherCurrentState = philosopherState;
 
     std::vector<std::string> newRow { getName(),
@@ -73,15 +80,88 @@ void Philosopher::performStateTransitionTo(Philosopher::PhilosopherState philoso
                                       _leftFork.getOwnerName(),
                                       _leftFork.convertStateToString(_leftFork.getState()) };
 
+    log.log(_philosopherName + ": " + newRow[0] + " | "
+                                    + newRow[1] + " | "
+                                    + newRow[2] + " | "
+                                    + newRow[3] + " | "
+                                    + newRow[4] + " | ", __FUNCTION__);
     _graphics->updateRow(_id, newRow);
+}
+
+bool Philosopher::stoppedDining()
+{
+    log.log(_philosopherName, __FUNCTION__);
+    if(_diningScheduler.isDinnerOver())
+    {
+        log.log(_philosopherName + " - TRUE", __FUNCTION__);
+        _leftFork.free();
+        _rightFork.free();
+
+        if(_philosopherThread.joinable())
+        {
+            _philosopherThread.detach();
+        }
+
+        return true;
+    }
+
+    log.log(_philosopherName + " - FALSE", __FUNCTION__);
+    return false;
+}
+
+void Philosopher::aquireForks()
+{
+    log.log(_philosopherName, __FUNCTION__);
+    performStateTransitionTo(WAITING_FOR_FORKS);
+
+    if(_forkLeftOrRightDice.rollUnsignedInt() == 1)
+    {
+        log.log(_philosopherName + " left", __FUNCTION__);
+        _leftFork.aquire(_philosopherName);
+        performStateTransitionTo(WAITING_FOR_RIGHT_FORK);
+        _rightFork.aquire(_philosopherName);
+    }
+    else
+    {
+        log.log(_philosopherName + " right", __FUNCTION__);
+        _rightFork.aquire(_philosopherName);
+        performStateTransitionTo(WAITING_FOR_LEFT_FORK);
+        _leftFork.aquire(_philosopherName);
+    }
+}
+
+void Philosopher::startThinking()
+{
+    log.log(_philosopherName, __FUNCTION__);
+    performStateTransitionTo(THINKING);
+    std::this_thread::sleep_for(std::chrono::milliseconds(_activityTimeDice.rollUnsignedInt()));
+}
+
+void Philosopher::startEating()
+{
+    log.log(_philosopherName, __FUNCTION__);
+    aquireForks();
+    performStateTransitionTo(EATING);
+    std::this_thread::sleep_for(std::chrono::milliseconds(_activityTimeDice.rollUnsignedInt()));
+
+    _leftFork.free();
+    _rightFork.free();
 }
 
 void Philosopher::startDinner()
 {
     _diningScheduler.wait();
 
-    while(!_diningScheduler.isDinnerOver())
+    log.log(_philosopherName, __FUNCTION__);
+
+    while(true)
     {
-        
+        startThinking();
+        startEating();
+
+        if(stoppedDining())
+        {
+            break;
+        }
     }
 }

@@ -8,6 +8,13 @@ Dice::Dice(uint32_t lowerBound, uint32_t upperBound)
     , signedUniformIntDistribution(lowerBound, upperBound)
 { }
 
+Dice::Dice(const Dice& other)
+    : randomDevice()
+    , randomEngine(other.randomEngine)
+    , unsignedUniformIntDistribution(other.unsignedUniformIntDistribution)
+    , signedUniformIntDistribution(other.signedUniformIntDistribution)
+{ }
+
 uint32_t Dice::rollUnsignedInt()
 {
     return unsignedUniformIntDistribution(randomEngine);
