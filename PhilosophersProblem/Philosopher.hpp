@@ -5,7 +5,6 @@
 #include <thread>
 #include <memory>
 #include <Miscellanous/Dice.hpp>
-#include <Miscellanous/Logger.hpp>
 #include <Console/Graphics.hpp>
 #include <PhilosophersProblem/Fork.hpp>
 #include <PhilosophersProblem/DiningScheduler.hpp>
@@ -53,6 +52,4 @@ class Philosopher
     Dice _activityTimeDice;
     Dice _forkLeftOrRightDice;
     std::thread _philosopherThread;
-
-    Logger log;
 };

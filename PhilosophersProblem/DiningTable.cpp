@@ -41,6 +41,7 @@ void DiningTable::initTable()
 
 void DiningTable::createForks(uint32_t philosophersCount)
 {
+    _forks.reserve(philosophersCount);
     for(uint32_t forkId = 0; forkId < philosophersCount; ++forkId)
     {
         std::string ownerName;
@@ -61,6 +62,7 @@ void DiningTable::createForks(uint32_t philosophersCount)
 
 void DiningTable::createPhilosophers(uint32_t philosophersCount)
 {
+    _philosophers.reserve(philosophersCount);
     for(uint32_t philosopherId = 0; philosopherId < philosophersCount; ++philosopherId)
     {
         std::string philosopherName = "Phil" + std::to_string(philosopherId);
