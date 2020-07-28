@@ -17,9 +17,7 @@ class Philosopher
     {
         THINKING,
         EATING,
-        WAITING_FOR_FORKS,
-        WAITING_FOR_RIGHT_FORK,
-        WAITING_FOR_LEFT_FORK
+        WAITING_FOR_FORKS
     };
 
     Philosopher(uint32_t id, const std::string& philosopherName, Fork& leftFork,

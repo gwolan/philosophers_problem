@@ -47,13 +47,13 @@ void DiningTable::createForks(uint32_t philosophersCount)
         std::string ownerName;
         std::string forkName = "Fork" + std::to_string(forkId);
 
-        if(forkId == philosophersCount - 1)
+        if(forkId == 0)
         {
-            ownerName = "Phil" + std::to_string(0);
+            ownerName = "Phil" + std::to_string(forkId);
         }
         else
         {
-            ownerName = "Phil" + std::to_string(forkId);
+            ownerName = "Phil" + std::to_string(forkId - 1);
         }
 
         _forks.emplace_back(forkId, forkName, ownerName, _diningScheduler);

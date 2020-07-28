@@ -1,3 +1,4 @@
+#include <utility>
 #include <Console/Graphics.hpp>
 
 
@@ -8,6 +9,7 @@ Graphics::Graphics(const std::vector<std::string>& columnsNames,
     , _menuItems(nullptr)
     , _columnsNames(columnsNames)
     , _rows()
+    , _rowsValues(rowsValues)
     , _nullRow("\0")
     , _topPadding(4)
     , _bottomPadding(4)
@@ -16,6 +18,8 @@ Graphics::Graphics(const std::vector<std::string>& columnsNames,
     , _columnWidth()
     , _rowsCount()
     , _baseMenuItemId(2)
+    , _rowsForkStateIndex(4)
+    , _rowsForkOwnerIndex(3)
     , _diningScheduler(diningScheduler)
 {
     // set COLS and LINES variables
@@ -23,7 +27,7 @@ Graphics::Graphics(const std::vector<std::string>& columnsNames,
 
     // calculate each columns maximum string length
     _columnWidth = calculateColumnWidth();
-    createRows(rowsValues);
+    createRows();
     init();
 }
 
@@ -80,7 +84,7 @@ std::string Graphics::createRow(const std::vector<std::string>& columnsValues)
     return result;
 }
 
-void Graphics::createRows(const std::vector<std::vector<std::string>>& rowsValues)
+void Graphics::createRows()
 {
     // this method creates rows for table
     // first two rows are column titles and line separator
@@ -96,7 +100,7 @@ void Graphics::createRows(const std::vector<std::vector<std::string>>& rowsValue
     _rows.push_back(lineSeparator);
 
     // create following table records
-    for(const auto& row : rowsValues)
+    for(const auto& row : _rowsValues)
     {
         std::string menuItem = createRow(row);
         _rows.push_back(menuItem);
@@ -105,6 +109,11 @@ void Graphics::createRows(const std::vector<std::vector<std::string>>& rowsValue
     // ncurses menu requires that menu item list is closed with null item
     _rows.push_back(_nullRow);
     _rowsCount = _rows.size();
+
+    // add columns names, line separator and null row to rows values vector
+    _rowsValues.insert(_rowsValues.begin(), std::vector<std::string>(_columnsCount, std::string(_columnWidth, '-')));
+    _rowsValues.insert(_rowsValues.begin(), _columnsNames);
+    _rowsValues.push_back(std::vector<std::string>(1, _nullRow));
 }
 
 uint32_t Graphics::calculateWindowWidth()
@@ -238,19 +247,30 @@ void Graphics::display()
     }
 }
 
-void Graphics::updateRow(uint32_t rowIndex, const std::vector<std::string>& rowValues)
+void Graphics::updateRow(uint32_t philosopherIndex,
+                         uint32_t rightForkIndex, const std::vector<std::string>& philosopherRowValues,
+                                                  const std::pair<std::string, std::string>& rightForkOwnerAndState)
 {
     std::lock_guard<std::mutex> lock(mutex);
 
-    // create new row from given values
-    std::string newRow = createRow(rowValues);
+    // align indexes to menu items indexing
+    philosopherIndex += _baseMenuItemId;
+    rightForkIndex += _baseMenuItemId;
 
-    // align index to menu items indexing
-    rowIndex += _baseMenuItemId;
+    // update table row with right fork of corresponding philosopher that is being updated
+    _rowsValues[rightForkIndex][_rowsForkOwnerIndex] = rightForkOwnerAndState.first;
+    _rowsValues[rightForkIndex][_rowsForkStateIndex] = rightForkOwnerAndState.second;
 
-    // overwrite row at given index
-    _rows[rowIndex] = newRow;
-    _menuItems[rowIndex] = new_item(_rows[rowIndex].c_str(), _rows[rowIndex].c_str());
+    // create new rows from given values
+    std::string updatedPhilosopherRow = createRow(philosopherRowValues);
+    std::string updatedRightForkRow = createRow(_rowsValues[rightForkIndex]);
+
+    // overwrite rows at given indexes
+    _rowsValues[philosopherIndex] = philosopherRowValues;
+    _rows[philosopherIndex] = updatedPhilosopherRow;
+    _rows[rightForkIndex] = updatedRightForkRow;
+    _menuItems[philosopherIndex] = new_item(_rows[philosopherIndex].c_str(), _rows[philosopherIndex].c_str());
+    _menuItems[rightForkIndex] = new_item(_rows[rightForkIndex].c_str(), _rows[rightForkIndex].c_str());
 
     // update menu items
     refreshMenu();

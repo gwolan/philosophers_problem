@@ -1,4 +1,5 @@
 #include <vector>
+#include <utility>
 #include <PhilosophersProblem/Philosopher.hpp>
 
 
@@ -60,8 +61,6 @@ std::string Philosopher::convertStateToString(PhilosopherState philosopherState)
         case THINKING:               return "THINKING";
         case EATING:                 return "EATING";
         case WAITING_FOR_FORKS:      return "WAITING_FOR_FORKS";
-        case WAITING_FOR_RIGHT_FORK: return "WAITING_FOR_RIGHT_FORK";
-        case WAITING_FOR_LEFT_FORK:  return "WAITING_FOR_LEFT_FORK";
     };
 
     return "UNKNOWN";
@@ -69,15 +68,19 @@ std::string Philosopher::convertStateToString(PhilosopherState philosopherState)
 
 void Philosopher::performStateTransitionTo(Philosopher::PhilosopherState philosopherState)
 {
-    _philosopherCurrentState = philosopherState;
+    if(_philosopherCurrentState != philosopherState)
+    {
+        _philosopherCurrentState = philosopherState;
 
-    std::vector<std::string> newRow { getName(),
-                                      convertStateToString(getState()),
-                                      _leftFork.getName(),
-                                      _leftFork.getOwnerName(),
-                                      _leftFork.convertStateToString(_leftFork.getState()) };
+        std::vector<std::string> newPhilosopherRow { getName(),
+                                                     convertStateToString(getState()),
+                                                     _leftFork.getName(),
+                                                     _leftFork.getOwnerName(),
+                                                     _leftFork.convertStateToString(_leftFork.getState()) };
 
-    _graphics->updateRow(_id, newRow);
+        _graphics->updateRow(_id, _rightFork.getId(), newPhilosopherRow, std::pair<std::string, std::string>(_rightFork.getOwnerName(),
+                                                                                                             _rightFork.convertStateToString(_rightFork.getState())));
+    }
 }
 
 bool Philosopher::stoppedDining()
@@ -100,19 +103,39 @@ bool Philosopher::stoppedDining()
 
 void Philosopher::aquireForks()
 {
-    performStateTransitionTo(WAITING_FOR_FORKS);
+    bool hasForks = false;
 
-    if(_forkLeftOrRightDice.rollUnsignedInt() == 1)
+    while(!hasForks)
     {
-        _leftFork.aquire(_philosopherName);
-        performStateTransitionTo(WAITING_FOR_RIGHT_FORK);
-        _rightFork.aquire(_philosopherName);
-    }
-    else
-    {
-        _rightFork.aquire(_philosopherName);
-        performStateTransitionTo(WAITING_FOR_LEFT_FORK);
-        _leftFork.aquire(_philosopherName);
+        if(_forkLeftOrRightDice.rollUnsignedInt() == 1)
+        {
+            if(_leftFork.aquire(_philosopherName))
+            {
+                if(_rightFork.aquire(_philosopherName))
+                {
+                    hasForks = true;
+                    continue;
+                }
+
+                _leftFork.free();
+            }
+        }
+        else
+        {
+            if(_rightFork.aquire(_philosopherName))
+            {
+                if(_leftFork.aquire(_philosopherName))
+                {
+                    hasForks = true;
+                    continue;
+                }
+
+                _rightFork.free();
+            }
+        }
+
+        performStateTransitionTo(WAITING_FOR_FORKS);
+        _diningScheduler.wait();
     }
 }
 

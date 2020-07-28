@@ -25,7 +25,7 @@ class Fork
     ForkState getState() const;
     bool isFree();
     std::string convertStateToString(ForkState forkState);
-    void aquire(const std::string& requestorName);
+    bool aquire(const std::string& requestorName);
     void free();
 
 

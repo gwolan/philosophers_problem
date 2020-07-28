@@ -63,20 +63,16 @@ void Fork::free()
     _diningScheduler.notifyAllThreads();
 }
 
-void Fork::aquire(const std::string& requestorName)
+bool Fork::aquire(const std::string& requestorName)
 {
-    while(_ownerName != requestorName)
+    std::lock_guard<std::mutex> lock(mutex);
+    if(isFree())
     {
-        if(getState() == FREE)
-        {
-            std::lock_guard<std::mutex> lock(mutex);
+        _forkCurrentState = IN_USE;
+        _ownerName = requestorName;
 
-            _forkCurrentState = IN_USE;
-            _ownerName = requestorName;
-        }
-        else
-        {
-            _diningScheduler.wait();
-        }
+        return true;
     }
+
+    return false;
 }
